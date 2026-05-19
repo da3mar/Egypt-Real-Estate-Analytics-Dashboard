@@ -1,0 +1,391 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .app { display: flex; min-height: 100vh; background: #f0f4ff; }
+  .sidebar { width: 220px; min-width: 220px; background: #1a1f5e; display: flex; flex-direction: column; padding: 0; position: sticky; top: 0; height: 100vh; }
+  .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo .logo-title { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; }
+  .sidebar-logo .logo-sub { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 2px; }
+  .nav-section { padding: 16px 12px 8px; }
+  .nav-label { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500; transition: all 0.18s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-item.active { background: #3b82f6; color: #fff; }
+  .nav-item i { font-size: 17px; width: 20px; }
+  .sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); font-size: 11px; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { background: #fff; border-bottom: 1px solid #e5e9f8; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .topbar-left { display: flex; flex-direction: column; }
+  .page-title { font-size: 19px; font-weight: 700; color: #1a1f5e; }
+  .page-sub { font-size: 12px; color: #8b93b5; margin-top: 1px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .chip { display: flex; align-items: center; gap: 5px; background: #f0f4ff; border: 1px solid #d0d8f5; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #1a1f5e; }
+  .chip i { font-size: 14px; }
+  .content { padding: 24px 28px; flex: 1; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .insight-bar { background: linear-gradient(135deg, #1a1f5e 0%, #2d3a9e 100%); border-radius: 14px; padding: 14px 20px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 22px; }
+  .insight-bar i { color: #facc15; font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+  .insight-bar .ins-title { color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .insight-bar .ins-list { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .insight-bar .ins-item { color: rgba(255,255,255,0.75); font-size: 12px; display: flex; align-items: center; gap: 5px; }
+  .insight-bar .ins-item::before { content: '•'; color: #60a5fa; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  .kpi-card { background: #fff; border-radius: 14px; padding: 18px 20px; border: 1px solid #e5e9f8; position: relative; overflow: hidden; }
+  .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #8b93b5; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: #1a1f5e; line-height: 1; }
+  .kpi-sub { font-size: 12px; color: #8b93b5; margin-top: 5px; }
+  .kpi-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 32px; opacity: 0.08; color: #1a1f5e; }
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .chart-card { background: #fff; border-radius: 14px; padding: 20px; border: 1px solid #e5e9f8; }
+  .chart-title { font-size: 13px; font-weight: 700; color: #1a1f5e; margin-bottom: 4px; }
+  .chart-sub { font-size: 11px; color: #8b93b5; margin-bottom: 14px; }
+  .chart-full { grid-column: 1 / -1; }
+  .bar-h { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; }
+  .bar-row-label { font-size: 12px; color: #1a1f5e; font-weight: 500; min-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 8px; background: #f0f4ff; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-val { font-size: 11px; color: #8b93b5; min-width: 48px; text-align: right; }
+  .donut-wrapper { display: flex; align-items: center; gap: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #1a1f5e; margin-bottom: 8px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .table-wrap { overflow-x: auto; }
+  table.dash { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.dash th { background: #f0f4ff; color: #1a1f5e; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; padding: 10px 12px; text-align: left; }
+  table.dash td { padding: 10px 12px; border-bottom: 1px solid #f0f4ff; color: #2d3a9e; }
+  table.dash tr:last-child td { border-bottom: none; }
+  table.dash .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-mini { background: #f0f4ff; border-radius: 10px; padding: 14px 16px; }
+  .stat-mini-label { font-size: 11px; color: #8b93b5; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
+  .stat-mini-val { font-size: 20px; font-weight: 700; color: #1a1f5e; margin-top: 4px; }
+</style>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title">🏙 Egypt PropIQ</div>
+      <div class="logo-sub">Real Estate Analytics</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <button class="nav-item active" onclick="goPage('overview',this)"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Overview</button>
+      <button class="nav-item" onclick="goPage('market',this)"><i class="ti ti-chart-bar" aria-hidden="true"></i> Market Prices</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Segments</div>
+      <button class="nav-item" onclick="goPage('types',this)"><i class="ti ti-building" aria-hidden="true"></i> Property Types</button>
+      <button class="nav-item" onclick="goPage('geo',this)"><i class="ti ti-map-pin" aria-hidden="true"></i> Geographic</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Details</div>
+      <button class="nav-item" onclick="goPage('size',this)"><i class="ti ti-ruler" aria-hidden="true"></i> Size & Rooms</button>
+      <button class="nav-item" onclick="goPage('payment',this)"><i class="ti ti-credit-card" aria-hidden="true"></i> Payment</button>
+    </div>
+    <div class="sidebar-footer">19,924 listings · 2024</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="page-title" id="topbar-title">Market Overview</div>
+        <div class="page-sub" id="topbar-sub">All 19,924 listings · Egypt</div>
+      </div>
+      <div class="topbar-right">
+        <div class="chip"><i class="ti ti-map-2" aria-hidden="true"></i> Egypt</div>
+        <div class="chip"><i class="ti ti-database" aria-hidden="true"></i> 19,924 listings</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- PAGE: OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="insight-bar">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div>
+            <div class="ins-title">Key Insights — Overview</div>
+            <div class="ins-list">
+              <div class="ins-item">Apartments lead at 42% of all listings</div>
+              <div class="ins-item">Median price is 10.3M EGP — mean pulled to 16.4M by luxury</div>
+              <div class="ins-item">78% of sellers prefer cash transactions</div>
+              <div class="ins-item">Average unit size is 204 sqm — above regional norms</div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent:#3b82f6"><div class="kpi-label">Total Listings</div><div class="kpi-value">19,924</div><div class="kpi-sub">Across 16 governorates</div><i class="ti ti-home kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#10b981"><div class="kpi-label">Median Price</div><div class="kpi-value">10.3M</div><div class="kpi-sub">EGP per unit</div><i class="ti ti-coin kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#f59e0b"><div class="kpi-label">Avg Unit Size</div><div class="kpi-value">204 m²</div><div class="kpi-sub">Median 170 sqm</div><i class="ti ti-ruler kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#8b5cf6"><div class="kpi-label">Property Types</div><div class="kpi-value">17</div><div class="kpi-sub">From studios to palaces</div><i class="ti ti-building kpi-icon" aria-hidden="true"></i></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Listings by Property Type</div><div class="chart-sub">Top 8 categories</div><div class="bar-h" id="bar-type-overview"></div></div>
+          <div class="chart-card"><div class="chart-title">Listings by City</div><div class="chart-sub">Geographic distribution</div><div class="bar-h" id="bar-city-overview"></div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Price Range Distribution</div><div class="chart-sub">Number of listings per price bracket</div><div style="position:relative;height:200px"><canvas id="chart-price-dist" role="img" aria-label="Price distribution">Price distribution across EGP brackets.</canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Payment Method Split</div><div class="chart-sub">Cash vs. Installments</div>
+            <div class="donut-wrapper" style="margin-top:10px">
+              <div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="chart-payment-donut" role="img" aria-label="Payment method">Cash 78%, Installments 19%.</canvas></div>
+              <div>
+                <div class="legend-item"><span class="legend-dot" style="background:#1a1f5e"></span>Cash — 15,521 (78%)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>Installments — 3,862 (19%)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#e5e9f8"></span>Unknown — 541 (3%)</div>
+                <div style="margin-top:12px;font-size:12px;color:#8b93b5">Cash dominates Egypt's property market</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: MARKET PRICES -->
+      <div class="page" id="page-market">
+        <div class="insight-bar">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div>
+            <div class="ins-title">Key Insights — Market Prices</div>
+            <div class="ins-list">
+              <div class="ins-item">Palaces average 199M EGP — 7× the Villa median</div>
+              <div class="ins-item">North Coast is the most expensive city (median 15M EGP)</div>
+              <div class="ins-item">Suez & Alexandria offer 40–60% cheaper alternatives to Cairo</div>
+              <div class="ins-item">Cabins fetch highest price per sqm at 234K EGP/m²</div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent:#10b981"><div class="kpi-label">Lowest Listing</div><div class="kpi-value">187K</div><div class="kpi-sub">EGP minimum</div><i class="ti ti-arrow-down kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#ef4444"><div class="kpi-label">Highest Listing</div><div class="kpi-value">840M</div><div class="kpi-sub">EGP maximum</div><i class="ti ti-arrow-up kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#3b82f6"><div class="kpi-label">Average Price</div><div class="kpi-value">16.4M</div><div class="kpi-sub">Mean EGP</div><i class="ti ti-chart-line kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#f59e0b"><div class="kpi-label">Price Skew</div><div class="kpi-value">1.6×</div><div class="kpi-sub">Mean vs. median ratio</div><i class="ti ti-scale kpi-icon" aria-hidden="true"></i></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Median Price by Property Type</div><div class="chart-sub">EGP — top 10 types</div><div class="bar-h" id="bar-price-type"></div></div>
+          <div class="chart-card"><div class="chart-title">Median Price by City</div><div class="chart-sub">EGP — top 6 cities</div><div class="bar-h" id="bar-price-city"></div></div>
+        </div>
+        <div class="chart-card chart-full">
+          <div class="chart-title">Price per sqm by Property Type</div>
+          <div class="chart-sub">EGP/m² median — reveals true value density</div>
+          <div style="position:relative;height:220px"><canvas id="chart-ppsqm" role="img" aria-label="Price per sqm">Cabins and palaces highest.</canvas></div>
+        </div>
+      </div>
+
+      <!-- PAGE: PROPERTY TYPES -->
+      <div class="page" id="page-types">
+        <div class="insight-bar">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div>
+            <div class="ins-title">Key Insights — Property Types</div>
+            <div class="ins-list">
+              <div class="ins-item">Apartments (42%) + Chalets (20%) = 62% of the market</div>
+              <div class="ins-item">Chalets are holiday-driven — concentrated on North Coast & Red Sea</div>
+              <div class="ins-item">Villa & Townhouse segment commands 3–4× apartment median price</div>
+              <div class="ins-item">17 distinct types — from rooftop units to full palace estates</div>
+            </div>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Listing Volume by Type</div><div class="chart-sub">Count of listings per type</div><div style="position:relative;height:280px"><canvas id="chart-type-volume" role="img" aria-label="Volume by type">Apartments lead at 8355.</canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Market Share</div><div class="chart-sub">% of total listings</div><div style="position:relative;height:280px"><canvas id="chart-type-share" role="img" aria-label="Market share">Apartments 42%.</canvas></div></div>
+        </div>
+        <div class="chart-card chart-full">
+          <div class="chart-title">Median Price Comparison — All Types</div>
+          <div class="chart-sub">EGP — sorted by value</div>
+          <div style="position:relative;height:240px"><canvas id="chart-type-price" role="img" aria-label="Price by type">Palace tops at 199M EGP.</canvas></div>
+        </div>
+      </div>
+
+      <!-- PAGE: GEOGRAPHIC -->
+      <div class="page" id="page-geo">
+        <div class="insight-bar">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div>
+            <div class="ins-title">Key Insights — Geographic</div>
+            <div class="ins-list">
+              <div class="ins-item">Cairo alone has 38% of all listings — the dominant market</div>
+              <div class="ins-item">North Coast beats Cairo in premium pricing (15M vs 10M EGP median)</div>
+              <div class="ins-item">Giza is the affordable metro alternative — median 7.7M EGP</div>
+              <div class="ins-item">Red Sea targets holiday buyers with mid-to-high pricing</div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent:#3b82f6"><div class="kpi-label">Top City</div><div class="kpi-value">Cairo</div><div class="kpi-sub">7,610 listings (38%)</div><i class="ti ti-building-skyscraper kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#f59e0b"><div class="kpi-label">Most Expensive</div><div class="kpi-value">N. Coast</div><div class="kpi-sub">Median 15M EGP</div><i class="ti ti-beach kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#10b981"><div class="kpi-label">Most Affordable</div><div class="kpi-value">Suez</div><div class="kpi-sub">Median 6M EGP</div><i class="ti ti-trending-down kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#8b5cf6"><div class="kpi-label">Governorates</div><div class="kpi-value">16</div><div class="kpi-sub">Covered in dataset</div><i class="ti ti-map kpi-icon" aria-hidden="true"></i></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Listings by City</div><div class="chart-sub">Volume share</div><div style="position:relative;height:260px"><canvas id="chart-geo-vol" role="img" aria-label="Volume by city">Cairo 7610.</canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Median Price by City</div><div class="chart-sub">EGP — market positioning</div><div style="position:relative;height:260px"><canvas id="chart-geo-price" role="img" aria-label="Price by city">North Coast leads.</canvas></div></div>
+        </div>
+        <div class="chart-card chart-full">
+          <div class="chart-title">City Comparison Table</div>
+          <div class="chart-sub">Key metrics per city</div>
+          <div class="table-wrap" style="margin-top:8px">
+            <table class="dash">
+              <thead><tr><th>City</th><th>Listings</th><th>Market Share</th><th>Median Price (EGP)</th><th>Position</th></tr></thead>
+              <tbody>
+                <tr><td><b>Cairo</b></td><td>7,610</td><td>38.2%</td><td>10,000,000</td><td><span class="tag" style="background:#dbeafe;color:#1e40af">Volume Leader</span></td></tr>
+                <tr><td><b>North Coast</b></td><td>5,246</td><td>26.3%</td><td>15,000,000</td><td><span class="tag" style="background:#fef3c7;color:#92400e">Premium Market</span></td></tr>
+                <tr><td><b>Giza</b></td><td>4,276</td><td>21.5%</td><td>7,721,054</td><td><span class="tag" style="background:#d1fae5;color:#065f46">Value Metro</span></td></tr>
+                <tr><td><b>Red Sea</b></td><td>1,598</td><td>8.0%</td><td>11,000,000</td><td><span class="tag" style="background:#ede9fe;color:#5b21b6">Holiday Coastal</span></td></tr>
+                <tr><td><b>Suez</b></td><td>601</td><td>3.0%</td><td>6,000,000</td><td><span class="tag" style="background:#d1fae5;color:#065f46">Affordable</span></td></tr>
+                <tr><td><b>Alexandria</b></td><td>385</td><td>1.9%</td><td>6,500,000</td><td><span class="tag" style="background:#f0f4ff;color:#1a1f5e">Secondary Urban</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: SIZE & ROOMS -->
+      <div class="page" id="page-size">
+        <div class="insight-bar">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div>
+            <div class="ins-title">Key Insights — Size & Rooms</div>
+            <div class="ins-list">
+              <div class="ins-item">3-bedroom units are the sweet spot — 44% of all listings</div>
+              <div class="ins-item">120–200 sqm is the most common size band (42% of listings)</div>
+              <div class="ins-item">Units with maids' rooms signal upper-mid to luxury segment</div>
+              <div class="ins-item">Only 7% of listings exceed 400 sqm — true luxury is scarce</div>
+            </div>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Size Distribution (sqm)</div><div class="chart-sub">Number of listings per size bracket</div><div style="position:relative;height:240px"><canvas id="chart-size-dist" role="img" aria-label="Size distribution">120-160 sqm most common.</canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Bedroom Count Distribution</div><div class="chart-sub">Includes maid-room variants</div><div style="position:relative;height:240px"><canvas id="chart-bed-dist" role="img" aria-label="Bedroom distribution">3 bedrooms most common.</canvas></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-mini"><div class="stat-mini-label">Smallest Band</div><div class="stat-mini-val">&lt; 80 sqm</div><div style="font-size:12px;color:#8b93b5;margin-top:4px">1,332 listings (7%)</div></div>
+          <div class="stat-mini"><div class="stat-mini-label">Most Common Range</div><div class="stat-mini-val">120–160 sqm</div><div style="font-size:12px;color:#8b93b5;margin-top:4px">4,434 listings (22%)</div></div>
+          <div class="stat-mini"><div class="stat-mini-label">Large Units (400+)</div><div class="stat-mini-val">1,345 units</div><div style="font-size:12px;color:#8b93b5;margin-top:4px">6.8% — luxury segment</div></div>
+        </div>
+        <div class="chart-card chart-full">
+          <div class="chart-title">Bedrooms Breakdown</div>
+          <div class="chart-sub">Full breakdown including maid's room variants</div>
+          <div class="bar-h" id="bar-bed-full" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- PAGE: PAYMENT -->
+      <div class="page" id="page-payment">
+        <div class="insight-bar">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div>
+            <div class="ins-title">Key Insights — Payment</div>
+            <div class="ins-list">
+              <div class="ins-item">78% cash-only listings reflect Egypt's traditional property market</div>
+              <div class="ins-item">Installment availability is growing — 19% of listings offer it</div>
+              <div class="ins-item">Down payments typically range 10–15% of total price</div>
+              <div class="ins-item">Repayment plans range from 1 to 12+ years</div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent:#1a1f5e"><div class="kpi-label">Cash Listings</div><div class="kpi-value">15,521</div><div class="kpi-sub">77.9% of market</div><i class="ti ti-cash kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#3b82f6"><div class="kpi-label">Installment Listings</div><div class="kpi-value">3,862</div><div class="kpi-sub">19.4% of market</div><i class="ti ti-calendar-repeat kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#f59e0b"><div class="kpi-label">Avg Down Payment</div><div class="kpi-value">~10%</div><div class="kpi-sub">Of total asking price</div><i class="ti ti-percentage kpi-icon" aria-hidden="true"></i></div>
+          <div class="kpi-card" style="--accent:#10b981"><div class="kpi-label">Missing Data</div><div class="kpi-value">541</div><div class="kpi-sub">No payment info listed</div><i class="ti ti-help kpi-icon" aria-hidden="true"></i></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Payment Method Distribution</div><div class="chart-sub">Cash vs. installments vs. unknown</div><div style="position:relative;height:260px"><canvas id="chart-pay-bar" role="img" aria-label="Payment distribution">Cash 15521, Installments 3862.</canvas></div></div>
+          <div class="chart-card">
+            <div class="chart-title">Why Cash Dominates</div>
+            <div class="chart-sub">Market context</div>
+            <div style="margin-top:12px">
+              <div style="background:#f0f4ff;border-radius:10px;padding:14px 16px;margin-bottom:10px"><div style="font-size:13px;font-weight:700;color:#1a1f5e;margin-bottom:4px">🏛 Cultural Preference</div><div style="font-size:12px;color:#6b7280">Egyptian property market traditionally favors outright ownership. Mortgages remain underutilized.</div></div>
+              <div style="background:#f0f4ff;border-radius:10px;padding:14px 16px;margin-bottom:10px"><div style="font-size:13px;font-weight:700;color:#1a1f5e;margin-bottom:4px">📈 Developer Plans</div><div style="font-size:12px;color:#6b7280">New developments increasingly offer installment plans to widen buyer pool.</div></div>
+              <div style="background:#f0f4ff;border-radius:10px;padding:14px 16px"><div style="font-size:13px;font-weight:700;color:#1a1f5e;margin-bottom:4px">💡 Growing Segment</div><div style="font-size:12px;color:#6b7280">19.4% installment rate shows the market is evolving — especially in premium compounds.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DATA = {
+  type_dist: {Apartment:8355,Chalet:4038,Villa:3570,Townhouse:1335,'Twin House':834,Duplex:622,Penthouse:569,iVilla:268},
+  city_dist: {Cairo:7610,'North Coast':5246,Giza:4276,'Red Sea':1598,Suez:601,Alexandria:385,Qalyubia:58,'S. Sinai':28},
+  price_by_type: {Palace:199000000,Villa:28000000,'Whole Bldg':27000000,'Twin House':23000000,Townhouse:18000000,'Hotel Apt':13294000,Cabin:13000000,Penthouse:12500000,iVilla:12496000,Duplex:12300000},
+  price_by_city: {'North Coast':15000000,'Red Sea':11000000,Cairo:10000000,Giza:7721054,Alexandria:6500000,Suez:6000000},
+  price_dist: {'<3M':1291,'3-6M':3711,'6-10M':4535,'10-15M':3479,'15-25M':3448,'25-50M':2064,'50M+':857},
+  ppsqm: {Cabin:234286,Palace:209474,'Hotel Apt':125899,Chalet:86393,Villa:86364,'Twin House':85000,'Whole Bldg':79683,Townhouse:77778},
+  bed_dist: {'1 BR':1198,'2 BR':4597,'3 BR':8696,'4 BR':3252,'5 BR':1111,'6 BR':347,'7+ BR':251},
+  size_dist: {'<80':1332,'80-120':3067,'120-160':4434,'160-200':3829,'200-280':3763,'280-400':2042,'400+':1345},
+};
+
+const BLUE = ['#1a1f5e','#2d3a9e','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'];
+const COLORS = ['#1a1f5e','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899'];
+
+function fmtM(n){ if(n>=1e9) return (n/1e9).toFixed(1)+'B'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); }
+
+function makeBarH(id, labels, values, maxVal, colorFn){
+  const el = document.getElementById(id); if(!el) return;
+  const max = maxVal || Math.max(...values);
+  el.innerHTML = labels.map((lbl,i)=>`<div class="bar-row"><div class="bar-row-label" title="${lbl}">${lbl}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(values[i]/max*100)}%;background:${colorFn?colorFn(i):COLORS[i%COLORS.length]}"></div></div><div class="bar-val">${fmtM(values[i])}</div></div>`).join('');
+}
+
+function makeChart(id, type, labels, datasets, opts){
+  const ctx = document.getElementById(id); if(!ctx) return;
+  return new Chart(ctx, {type, data:{labels, datasets}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}});
+}
+
+const pages = {
+  overview: ['Market Overview','All 19,924 listings · Egypt'],
+  market: ['Market Prices','Median & mean price analysis'],
+  types: ['Property Types','17 categories analyzed'],
+  geo: ['Geographic Analysis','By city & governorate'],
+  size: ['Size & Rooms','Unit dimensions & bedroom count'],
+  payment: ['Payment Methods','Cash vs. installment analysis'],
+};
+
+function goPage(key, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+key).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('topbar-title').textContent = pages[key][0];
+  document.getElementById('topbar-sub').textContent = pages[key][1];
+}
+
+window.addEventListener('load', ()=>{
+  const TD = DATA.type_dist;
+  makeBarH('bar-type-overview', Object.keys(TD), Object.values(TD), null, i=>BLUE[i]);
+  makeBarH('bar-city-overview', Object.keys(DATA.city_dist), Object.values(DATA.city_dist), null, i=>COLORS[i]);
+
+  makeChart('chart-price-dist','bar',Object.keys(DATA.price_dist),[{data:Object.values(DATA.price_dist),backgroundColor:['#dbeafe','#bfdbfe','#93c5fd','#60a5fa','#3b82f6','#2d3a9e','#1a1f5e'],borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}});
+
+  new Chart(document.getElementById('chart-payment-donut'),{type:'doughnut',data:{labels:['Cash','Installments','Unknown'],datasets:[{data:[15521,3862,541],backgroundColor:['#1a1f5e','#3b82f6','#e5e9f8'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}});
+
+  makeBarH('bar-price-type', Object.keys(DATA.price_by_type), Object.values(DATA.price_by_type), null, i=>COLORS[i]);
+  makeBarH('bar-price-city', Object.keys(DATA.price_by_city), Object.values(DATA.price_by_city), null, i=>BLUE[i]);
+
+  makeChart('chart-ppsqm','bar',Object.keys(DATA.ppsqm),[{data:Object.values(DATA.ppsqm),backgroundColor:'#3b82f6',borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{callback:v=>fmtM(v),font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:10}}}}});
+
+  makeChart('chart-type-volume','bar',Object.keys(TD),[{data:Object.values(TD),backgroundColor:COLORS.slice(0,8),borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:10}}}}});
+
+  new Chart(document.getElementById('chart-type-share'),{type:'doughnut',data:{labels:Object.keys(TD),datasets:[{data:Object.values(TD),backgroundColor:COLORS.slice(0,8),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:true,position:'right',labels:{font:{size:11},padding:10,boxWidth:12,boxHeight:12}}}}});
+
+  makeChart('chart-type-price','bar',Object.keys(DATA.price_by_type),[{data:Object.values(DATA.price_by_type),backgroundColor:COLORS,borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{callback:v=>fmtM(v),font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:30}}}});
+
+  makeChart('chart-geo-vol','bar',Object.keys(DATA.city_dist),[{data:Object.values(DATA.city_dist),backgroundColor:BLUE,borderRadius:6,borderSkipped:false}],{indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:11}}}}});
+
+  makeChart('chart-geo-price','bar',Object.keys(DATA.price_by_city),[{data:Object.values(DATA.price_by_city),backgroundColor:['#f59e0b','#ef4444','#3b82f6','#10b981','#8b5cf6','#1a1f5e'],borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{callback:v=>fmtM(v),font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:10}}}}});
+
+  makeChart('chart-size-dist','bar',Object.keys(DATA.size_dist),[{data:Object.values(DATA.size_dist),backgroundColor:['#dbeafe','#bfdbfe','#93c5fd','#60a5fa','#3b82f6','#2d3a9e','#1a1f5e'],borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}});
+
+  makeChart('chart-bed-dist','bar',Object.keys(DATA.bed_dist),[{data:Object.values(DATA.bed_dist),backgroundColor:COLORS.slice(0,7),borderRadius:6,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}});
+
+  const bedFull = {'1 BR':1198,'1+Maid':447,'2 BR':4597,'2+Maid':1748,'3 BR':8696,'3+Maid':3737,'4 BR':1126,'4+Maid':2126,'5+ BR':1272};
+  makeBarH('bar-bed-full', Object.keys(bedFull), Object.values(bedFull), Math.max(...Object.values(bedFull)), i=>i%2===0?'#1a1f5e':'#3b82f6');
+
+  makeChart('chart-pay-bar','bar',['Cash','Installments','Unknown'],[{data:[15521,3862,541],backgroundColor:['#1a1f5e','#3b82f6','#e5e9f8'],borderRadius:8,borderSkipped:false}],{scales:{y:{beginAtZero:true,grid:{color:'#f0f4ff'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:13,weight:'bold'}}}}});
+});
+</script>
